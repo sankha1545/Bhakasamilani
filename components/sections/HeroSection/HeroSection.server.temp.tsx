@@ -6,6 +6,7 @@ const slides = [
     title: "Unite in Faith, Serve with Love",
     subtitle: "Join us in making a difference through devotion and service",
   },
+  
 ];
 
 export default function HeroSectionServer() {

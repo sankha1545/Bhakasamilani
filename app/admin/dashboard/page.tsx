@@ -1,4 +1,4 @@
-"use client";
+ "use client";
 
 import React, {
   useEffect,
@@ -49,8 +49,9 @@ type Donation = {
 };
 
 type TopDonor = {
-  name: string;
-  email: string;
+  name: string | null;
+  email: string | null;
+  phone?: string | null;
   totalAmount: number; // rupees
 };
 
@@ -197,26 +198,74 @@ export default function AdminDashboardPage() {
     };
   }, [completedDonations]);
 
-  // Top donors: merge duplicates by email/name, sort by totalAmount, show top 3
+  // ------------------ NEW: compute top donors from donations (SUM by donor) ------------------
+  /**
+   * Logic:
+   *  - Group by primary key: donorEmail (if present)
+   *  - Fallbacks for key: donorPhone, donorName, then an anonymous bucket
+   *  - Sum totalAmount per group
+   *  - Keep representative name/email/phone for display
+   *  - Sort by totalAmount desc and return top 3
+   *
+   * This makes Top Donors reflect the real total donations (10x 10k vs 1x 50k case).
+   */
   const topDonors = useMemo(() => {
+    // If we have no completed donations (rare), fall back to server-supplied rawTopDonors
+    if (!completedDonations || completedDonations.length === 0) {
+      // Convert rawTopDonors shape if necessary and return top 3
+      return (rawTopDonors || [])
+        .map((r) => ({
+          name: r.name ?? null,
+          email: r.email ?? null,
+          phone: undefined,
+          totalAmount: r.totalAmount ?? 0,
+        }))
+        .sort((a, b) => b.totalAmount - a.totalAmount)
+        .slice(0, 3);
+    }
+
+    // Map key -> aggregated TopDonor
     const map = new Map<string, TopDonor>();
 
-    for (const d of rawTopDonors) {
-      const key = d.email || d.name || "unknown";
-      const existing = map.get(key);
+    for (const d of completedDonations) {
+      // Build a stable grouping key preference: email -> phone -> name -> anonymous with index
+      const email = d.donorEmail ? d.donorEmail.trim().toLowerCase() : "";
+      const phone = d.donorPhone ? d.donorPhone.trim() : "";
+      const name = d.donorName ? d.donorName.trim() : "";
 
+      let key = email || phone || name || `anonymous`;
+
+      // If truly anonymous and multiple anonymous donors exist, append index to avoid merging all anonymous into one bucket
+      // but still keep them aggregated under the same 'anonymous' bucket if email/phone absent. This preserves privacy but
+      // prevents spammy merging. For your use-case we will aggregate anonymous into a single bucket.
+      // If you want separate anonymous identities, change this behavior.
+      if (key === "anonymous") {
+        key = "anonymous";
+      }
+
+      const existing = map.get(key);
       if (existing) {
-        existing.totalAmount += d.totalAmount;
-        if (!existing.name && d.name) existing.name = d.name;
+        existing.totalAmount += d.amount;
+        // prefer to set name/email/phone if missing
+        if (!existing.email && email) existing.email = email;
+        if (!existing.name && name) existing.name = name;
+        if (!existing.phone && phone) existing.phone = phone;
       } else {
-        map.set(key, { ...d });
+        map.set(key, {
+          name: name || null,
+          email: email || null,
+          phone: phone || null,
+          totalAmount: d.amount,
+        });
       }
     }
 
-    return Array.from(map.values())
-      .sort((a, b) => b.totalAmount - a.totalAmount)
-      .slice(0, 3);
-  }, [rawTopDonors]);
+    // Convert to array and sort by totalAmount desc
+    const arr = Array.from(map.values()).sort((a, b) => b.totalAmount - a.totalAmount);
+
+    // take top 3 donors
+    return arr.slice(0, 3);
+  }, [completedDonations, rawTopDonors]);
 
   // Search highlighting
   const highlightText = (text: string, query: string) => {
@@ -490,10 +539,10 @@ export default function AdminDashboardPage() {
                         </span>
                         <div>
                           <p className="font-semibold text-slate-900">
-                            {d.name || "Anonymous Devotee"}
+                            {d.name || d.email || "Anonymous Devotee"}
                           </p>
                           <p className="text-[11px] text-slate-500">
-                            {d.email}
+                            {d.email ?? d.phone ?? ""}
                           </p>
                         </div>
                       </div>

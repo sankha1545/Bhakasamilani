@@ -1,6 +1,7 @@
 "use client";
-import {  Facebook, Twitter, Instagram, Youtube } from "lucide-react";
+import { Facebook, Twitter, Instagram, Youtube } from "lucide-react";
 import { motion } from "framer-motion";
+import React from "react";
 
 export default function Footer() {
   const scrollToSection = (href: string) => {
@@ -12,6 +13,19 @@ export default function Footer() {
       window.scrollTo({ top: offsetPosition, behavior: "smooth" });
     }
   };
+
+  // contact values - keep in one place so they can be updated easily
+  const PHONE = "+91 84369 22630";
+  const TEL_HREF = "tel:+918436922630";
+  const EMAIL = "bardhamanbhaktasanmilani@gmail.com";
+  const MAILTO_HREF = `mailto:${EMAIL}`;
+
+  const socialLinks = [
+    { Icon: Facebook, label: "Facebook", href: "#" },
+    { Icon: Twitter, label: "Twitter", href: "#" },
+    { Icon: Instagram, label: "Instagram", href: "#" },
+    { Icon: Youtube, label: "YouTube", href: "#" },
+  ];
 
   return (
     <footer className="relative pt-16 pb-10 overflow-hidden text-white bg-gray-950">
@@ -44,7 +58,9 @@ export default function Footer() {
           className="grid gap-10 mb-10 md:grid-cols-2 lg:grid-cols-4"
         >
           {/* Column 1 */}
-          <motion.div variants={{ hidden: { opacity: 0, y: 30 }, show: { opacity: 1, y: 0 } }}>
+          <motion.div
+            variants={{ hidden: { opacity: 0, y: 30 }, show: { opacity: 1, y: 0 } }}
+          >
             <h3 className="mb-4 text-2xl font-bold text-transparent bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text">
               Bhakta Sammilan ॐ
             </h3>
@@ -55,10 +71,13 @@ export default function Footer() {
 
             {/* Social Icons */}
             <div className="flex gap-3">
-              {[Facebook, Twitter, Instagram, Youtube].map((Icon, i) => (
+              {socialLinks.map(({ Icon, label, href }, i) => (
                 <motion.a
                   key={i}
-                  href="#"
+                  href={href}
+                  aria-label={label}
+                  rel="noopener noreferrer"
+                  target={href.startsWith("#") ? undefined : "_blank"}
                   whileHover={{ scale: 1.15, rotate: 5 }}
                   className="flex items-center justify-center w-10 h-10 transition-all bg-gray-800 rounded-full hover:bg-gradient-to-r hover:from-orange-600 hover:to-amber-600"
                 >
@@ -69,7 +88,9 @@ export default function Footer() {
           </motion.div>
 
           {/* Column 2 */}
-          <motion.div variants={{ hidden: { opacity: 0, y: 30 }, show: { opacity: 1, y: 0 } }}>
+          <motion.div
+            variants={{ hidden: { opacity: 0, y: 30 }, show: { opacity: 1, y: 0 } }}
+          >
             <h4 className="mb-4 text-lg font-bold">Quick Links</h4>
             <ul className="space-y-3 text-gray-400">
               {[
@@ -94,7 +115,9 @@ export default function Footer() {
           </motion.div>
 
           {/* Column 3 */}
-          <motion.div variants={{ hidden: { opacity: 0, y: 30 }, show: { opacity: 1, y: 0 } }}>
+          <motion.div
+            variants={{ hidden: { opacity: 0, y: 30 }, show: { opacity: 1, y: 0 } }}
+          >
             <h4 className="mb-4 text-lg font-bold">Our Causes</h4>
             <ul className="space-y-3 text-gray-400">
               <li>Education for All</li>
@@ -106,13 +129,35 @@ export default function Footer() {
           </motion.div>
 
           {/* Column 4 */}
-          <motion.div variants={{ hidden: { opacity: 0, y: 30 }, show: { opacity: 1, y: 0 } }}>
+          <motion.div
+            variants={{ hidden: { opacity: 0, y: 30 }, show: { opacity: 1, y: 0 } }}
+          >
             <h4 className="mb-4 text-lg font-bold">Contact Info</h4>
             <ul className="space-y-3 text-gray-400">
               <li>R.B Chatterjee Road , Tikorhat, Bardhaman</li>
               <li> West Bengal - 713102, India</li>
-              <li className="mt-4">+91 84369 22630</li>
-              <li>bardhamanbhaktasanmilani@gmail.com</li>
+
+              {/* Click-to-call */}
+              <li className="mt-4">
+                <a
+                  href={TEL_HREF}
+                  aria-label={`Call ${PHONE}`}
+                  className="inline-block text-gray-300 hover:text-orange-400 transition-colors"
+                >
+                  {PHONE}
+                </a>
+              </li>
+
+              {/* Mailto link */}
+              <li>
+                <a
+                  href={MAILTO_HREF}
+                  aria-label={`Email ${EMAIL}`}
+                  className="inline-block text-gray-300 hover:text-orange-400 transition-colors break-all"
+                >
+                  {EMAIL}
+                </a>
+              </li>
             </ul>
           </motion.div>
         </motion.div>
@@ -128,9 +173,7 @@ export default function Footer() {
           <p className="text-center text-gray-500 md:text-left">
             © 2024 Bhakta Sammilan. All rights reserved.
           </p>
-          <p className="flex items-center gap-2 text-gray-400">
-          Sankha Subhra Das
-          </p>
+          <p className="flex items-center gap-2 text-gray-400">Sankha Subhra Das</p>
         </motion.div>
       </div>
     </footer>
