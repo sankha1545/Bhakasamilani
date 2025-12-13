@@ -44,7 +44,12 @@ async function fetchImageDataURL(path: string): Promise<string | null> {
   }
 }
 
-async function registerFontToJsPDF(doc: any, url: string, vfsName: string, fontName: string) {
+async function registerFontToJsPDF(
+  doc: any,
+  url: string,
+  vfsName: string,
+  fontName: string
+) {
   try {
     const res = await fetch(url);
     if (!res.ok) return;
@@ -115,10 +120,12 @@ function SuccessModal({
 
   const handleDownload = async () => {
     try {
+      // dynamic import to keep bundle small
       const jsPDFModule: any = await import("jspdf");
-      const jsPDF = jsPDFModule.jsPDF || jsPDFModule.default || (jsPDFModule as any);
+      // jspdf exports vary; handle multiple shapes
+      const jsPDFCtor = jsPDFModule.jsPDF || jsPDFModule.default || jsPDFModule;
 
-      const doc = new jsPDF({
+      const doc: any = new jsPDFCtor({
         orientation: "portrait",
         unit: "mm",
         format: "a4",
@@ -247,38 +254,31 @@ function SuccessModal({
         "Donation - Temple Construction & Maintenance | Social activities and charitable purposes";
 
       // Prepare wrapping. jsPDF has splitTextToSize utility.
-      // Use an initial fontSize and adjust if necessary to fit within a maximum box height.
       let purposeFontSize = 8; // start
       const lineHeightFactor = 1.15;
-      const maxPurposeBoxHeight = 36; // mm (adjust as desired) -> if text bigger, we'll reduce font or truncate
-      let purposeLines = doc.splitTextToSize(purposeText, boxWidth - boxPadding * 2);
-      let purposeHeight = purposeLines.length * purposeFontSize * (lineHeightFactor / 4.0); // rough mm estimate
-
-      // Convert font-size (pt) to mm approx: 1pt ≈ 0.3528 mm, but jsPDF text height calc often uses font size in pt.
-      const ptToMm = (pt: number) => (pt * 0.352777778);
+      const maxPurposeBoxHeight = 36; // mm (adjust as desired)
+      const ptToMm = (pt: number) => pt * 0.352777778;
       const computeHeight = (linesCount: number, fSize: number) => {
         const lineHtMm = ptToMm(fSize) * lineHeightFactor;
         return linesCount * lineHtMm;
       };
 
-      // Recompute with actual conversion and reduce font size to fit if needed
-      purposeLines = doc.splitTextToSize(purposeText, boxWidth - boxPadding * 2);
-      purposeHeight = computeHeight(purposeLines.length, purposeFontSize);
+      let purposeLines = doc.splitTextToSize(purposeText, boxWidth - boxPadding * 2);
+      let purposeHeight = computeHeight(purposeLines.length, purposeFontSize);
 
-      // If over max, try reducing font size progressively
       while (purposeHeight > maxPurposeBoxHeight && purposeFontSize > 6) {
         purposeFontSize -= 0.5;
         purposeLines = doc.splitTextToSize(purposeText, boxWidth - boxPadding * 2);
         purposeHeight = computeHeight(purposeLines.length, purposeFontSize);
       }
 
-      // If still too large, truncate lines to fit and append ellipsis
       const maxLinesThatFit = Math.floor(maxPurposeBoxHeight / (ptToMm(purposeFontSize) * lineHeightFactor));
       if (purposeLines.length > maxLinesThatFit) {
         const truncated = purposeLines.slice(0, Math.max(1, maxLinesThatFit));
         let last = truncated[truncated.length - 1];
-        // ensure we have room for ellipsis
-        if (!last.endsWith("...")) last = last.replace(/\s*\S{0,10}$/, (m) => m.trim()) + "...";
+        if (!last.endsWith("...")) {
+          last = last.replace(/\s*\S{0,10}$/, (m: string) => m.trim()) + "...";
+        }
         truncated[truncated.length - 1] = last;
         purposeLines = truncated;
         purposeHeight = computeHeight(purposeLines.length, purposeFontSize);
@@ -292,13 +292,9 @@ function SuccessModal({
       doc.setFontSize(8);
       doc.rect(rightBoxX, purposeBoxY, boxWidth, purposeBoxHeight, "S");
 
-      // render wrapped text: set the chosen font size and render lines with small top padding
+      // render wrapped text
       doc.setFontSize(purposeFontSize);
-      // convert first-line baseline Y coordinate:
-      // jsPDF text uses y as baseline; to get top alignment we add the converted font-size
       const lineHeightMm = ptToMm(purposeFontSize) * lineHeightFactor;
-      let textY = purposeBoxInnerY + (lineHeightMm - ptToMm(purposeFontSize)) / 2 + (ptToMm(purposeFontSize));
-      // Now print each line with small line spacing
       purposeLines.forEach((line: string, idx: number) => {
         doc.text(line, rightBoxX + boxPadding, purposeBoxInnerY + (idx * lineHeightMm) + (ptToMm(purposeFontSize) / 2));
       });
@@ -416,6 +412,7 @@ function SuccessModal({
         /* ignore */
       }
 
+      // finally save
       doc.save(`BhaktaSammilan_Receipt_${data.paymentId}.pdf`);
     } catch (err) {
       console.error("Error generating PDF:", err);

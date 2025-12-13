@@ -97,7 +97,8 @@ const AboutSection: React.FC = () => {
     link.as = "image";
     link.href = "/images/temple-placeholder.jpg";
     document.head.appendChild(link);
-    return () => document.head.removeChild(link);
+    return () => { document.head.removeChild(link);
+    };
   }, []);
 
   const toggleDecree = () => setIsOpen((v) => !v);
@@ -224,14 +225,14 @@ const AboutSection: React.FC = () => {
 
                       <p className="leading-relaxed text-[15px] sm:text-base">
                         Bardhaman Bhakta Sanmilani is committed to uplifting society through
-                        cultural, moral, social, and spiritual development — built upon compassion,
+                        cultural, moral, social, and spiritual development  built upon compassion,
                         service, and collective responsibility.
                       </p>
 
                       <p className="leading-relaxed text-[15px] sm:text-base">
                         Our efforts support the elderly, empower the underprivileged, promote
                         education, expand medical care, encourage yoga, and uplift women through
-                        self-reliance programs — cultivating harmony and human values.
+                        self-reliance programs cultivating harmony and human values.
                       </p>
 
                       <h4 className="font-bold text-lg pt-2">Our Core Objectives:</h4>
@@ -249,8 +250,8 @@ const AboutSection: React.FC = () => {
 
                       <p className="leading-relaxed text-[15px] sm:text-base pt-2">
                         To strengthen these initiatives, we are developing essential infrastructure —
-                        including a community hall and the **largest Krishna Temple in Purba
-                        Bardhaman**. With collective support, we aim to build a society rooted in
+                        including a community hall and the <b>largest Krishna Temple in Purba
+                        Bardhaman</b>. With collective support, we aim to build a society rooted in
                         dignity, harmony, and shared values.
                       </p>
                     </div>
@@ -264,11 +265,7 @@ const AboutSection: React.FC = () => {
                 </div>
 
                 {/* Bottom handle */}
-                <div aria-hidden className="absolute left-0 right-0 h-6 mx-8 -bottom-3 z-20 pointer-events-none">
-                  <div className="w-full h-6 rounded-full bg-gradient-to-r from-amber-900 via-amber-800 to-amber-900 shadow-sm">
-                    <div className="w-full h-2 rounded-full bg-amber-700/80" />
-                  </div>
-                </div>
+               
               </div>
             </div>
 
@@ -281,7 +278,10 @@ const AboutSection: React.FC = () => {
               return (
                 <div
                   key={index}
-                  ref={(el) => (statRefs.current[index] = el)}
+                  ref={(el) => {
+  statRefs.current[index] = el;
+}}
+
                   className="p-4 text-center bg-white rounded-xl shadow transform transition"
                   style={{ opacity: 0, transform: "translateY(18px) scale(0.98)" }}
                 >

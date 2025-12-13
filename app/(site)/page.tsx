@@ -1,25 +1,26 @@
-"use client";
+import { Suspense } from "react";
+import HeroSection from "@/components/sections/HeroSection/HeroSection";
+import ClientSections from "@/components/layout/ClientSections";
 
+/* -------------------------------------------
+ SEO METADATA (SERVER)
+--------------------------------------------*/
+export const metadata = {
+  title: "Temple Trust | Serving with Devotion and Community",
+  description:
+    "A community-driven temple trust dedicated to devotion, service, charity, and cultural upliftment.",
+};
 
-import HeroSection from "@/components/sections/HeroSection";
-import AboutSection from "@/components/sections/AboutSection";
-import DonateSection from "@/components/sections/DonateSection";
-import HowWeWorkSection from "@/components/sections/HowWeWorkSection";
-import ContactSection from "@/components/sections/ContactSection";
-import ScrollControls from "@/components/layout/ScrollControls";
-import MeetOurteam from "@/components/sections/MeetOurteamSection"; 
 export default function HomePage() {
   return (
-    <div className="min-h-screen">
-     
+    <main className="min-h-screen">
+      {/* LCP ELEMENT — SERVER RENDERED */}
       <HeroSection />
-      <AboutSection />
-      <HowWeWorkSection />
-      <DonateSection />
-      <MeetOurteam />
-      <ContactSection />
-    
-      <ScrollControls />
-    </div>
+
+      {/* Heavy client-only sections */}
+      <Suspense fallback={null}>
+        <ClientSections />
+      </Suspense>
+    </main>
   );
 }

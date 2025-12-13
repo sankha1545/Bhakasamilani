@@ -45,7 +45,8 @@ export async function POST(request: Request) {
       amount: normalizedAmount * 100, // in paise
       currency: "INR",
       receipt: `donation_${Date.now()}`,
-      payment_capture: 1,
+     payment_capture: true,
+
       notes: {
         donorName,
         donorEmail,
